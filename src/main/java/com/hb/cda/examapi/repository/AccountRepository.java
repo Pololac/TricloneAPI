@@ -1,6 +1,5 @@
 package com.hb.cda.examapi.repository;
 
-import com.hb.cda.examapi.controller.dto.AccountDTO;
 import com.hb.cda.examapi.entity.Account;
 import com.hb.cda.examapi.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;

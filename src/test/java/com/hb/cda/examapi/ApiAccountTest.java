@@ -4,13 +4,11 @@ import com.hb.cda.examapi.data.DataLoader;
 import com.hb.cda.examapi.entity.Account;
 import com.hb.cda.examapi.entity.User;
 import com.hb.cda.examapi.repository.AccountRepository;
-import com.hb.cda.examapi.repository.ExpenseRepository;
 import com.hb.cda.examapi.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.MediaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -26,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureTestDatabase
 @AutoConfigureMockMvc
 @Transactional
-public class ApiAccountTest {
+class ApiAccountTest {
     @Autowired
     MockMvc mvc;
 

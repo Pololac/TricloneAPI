@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/accounts")
-public class AccountListController {
+class AccountListController {
     private final AccountBusiness accountBusiness;
 
     public AccountListController(AccountBusiness accountBusiness) {

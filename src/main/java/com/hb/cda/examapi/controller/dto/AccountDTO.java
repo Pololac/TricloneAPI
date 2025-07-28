@@ -1,7 +1,5 @@
 package com.hb.cda.examapi.controller.dto;
 
-import java.util.List;
-
 public class AccountDTO {
     private String id;
     private String name;
