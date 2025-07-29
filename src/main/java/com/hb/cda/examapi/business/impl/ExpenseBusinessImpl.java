@@ -1,8 +1,8 @@
 package com.hb.cda.examapi.business.impl;
 
 import com.hb.cda.examapi.business.ExpenseBusiness;
+import com.hb.cda.examapi.business.pojo.ExpenseSummary;
 import com.hb.cda.examapi.controller.dto.PostExpenseDTO;
-import com.hb.cda.examapi.controller.dto.ExpenseListDTO;
 import com.hb.cda.examapi.controller.dto.mapper.ExpenseMapper;
 import com.hb.cda.examapi.entity.Account;
 import com.hb.cda.examapi.entity.Expense;
@@ -18,24 +18,21 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ExpenseBusinessImpl implements ExpenseBusiness {
     private ExpenseRepository expenseRepo;
     private AccountRepository accountRepo;
     private UserRepository userRepo;
-    private ExpenseMapper mapper;
 
     public ExpenseBusinessImpl(ExpenseRepository expenseRepo, AccountRepository accountRepo, UserRepository userRepo, ExpenseMapper mapper) {
         this.expenseRepo = expenseRepo;
         this.accountRepo = accountRepo;
         this.userRepo = userRepo;
-        this.mapper = mapper;
     }
 
     @Override
-    public ExpenseListDTO getExpensesByAccount(String accountId,
+    public ExpenseSummary getExpenseSummaryByAccount(String accountId,
                                                Optional<String> payerId,
                                                Optional<Double> minAmount,
                                                Optional<Double> maxAmount) {
@@ -49,33 +46,19 @@ public class ExpenseBusinessImpl implements ExpenseBusiness {
                 minAmount.orElse(null),
                 maxAmount.orElse(null));
 
-        // Conversion en DTO
-        List<PostExpenseDTO> dtos = expenses.stream()
-                .map(mapper::convertToDTO)
-                .collect(Collectors.toList());
-
-        // Calcul de la somme des dépenses
-        double total = expenses.stream()
-                .mapToDouble(Expense::getAmount)
-                .sum();
-
         // Renvoi du DTO incluant le total
-        return new ExpenseListDTO(dtos, total);
+        return new ExpenseSummary(expenses);
     }
 
     @Override
-    public PostExpenseDTO saveExpense(String accountId, PostExpenseDTO dto) {
-        Expense expense = mapper.convertFromPost(dto);
-
+    public Expense saveExpense(String accountId, User user, Expense expense) {
         // Récupération du groupe et du user concernés à partir du DTO
         Account account = accountRepo.findById(accountId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
-        User payer = userRepo.findById(dto.getPayerId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         // Ajout des propriétés liées aux relations
         expense.setAccount(account);
-        expense.setPayer(payer);
+        expense.setPayer(user);
 
         // Gestion cas où la date non envoyée par le front
         if (expense.getDate() == null) {
@@ -84,6 +67,6 @@ public class ExpenseBusinessImpl implements ExpenseBusiness {
 
         expenseRepo.save(expense);
 
-        return mapper.convertToDTO(expense);
+        return expense;
     }
 }

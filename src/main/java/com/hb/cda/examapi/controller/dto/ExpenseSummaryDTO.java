@@ -2,13 +2,14 @@ package com.hb.cda.examapi.controller.dto;
 
 import java.util.List;
 
-public class ExpenseListDTO {
+public class ExpenseSummaryDTO {
     private List<PostExpenseDTO> expenses;
     private Double total;
 
-    public ExpenseListDTO() {}
+    public ExpenseSummaryDTO() {
+    }
 
-    public ExpenseListDTO(List<PostExpenseDTO> expenses, Double total) {
+    public ExpenseSummaryDTO(List<PostExpenseDTO> expenses, Double total) {
         this.expenses = expenses;
         this.total = total;
     }
