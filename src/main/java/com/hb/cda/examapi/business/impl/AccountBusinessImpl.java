@@ -1,10 +1,8 @@
 package com.hb.cda.examapi.business.impl;
 
 import com.hb.cda.examapi.business.AccountBusiness;
-import com.hb.cda.examapi.controller.dto.AccountDTO;
-import com.hb.cda.examapi.controller.dto.AccountEntryDTO;
-import com.hb.cda.examapi.controller.dto.DebtDTO;
-import com.hb.cda.examapi.controller.dto.mapper.AccountMapper;
+import com.hb.cda.examapi.business.pojo.Balance;
+import com.hb.cda.examapi.business.pojo.Debt;
 import com.hb.cda.examapi.entity.Account;
 import com.hb.cda.examapi.entity.Expense;
 import com.hb.cda.examapi.entity.Payment;
@@ -26,22 +24,21 @@ public class AccountBusinessImpl implements AccountBusiness {
     private ExpenseRepository expenseRepo;
     private PaymentRepository paymentRepo;
     private UserRepository userRepo;
-    private AccountMapper mapper;
 
-    public AccountBusinessImpl(AccountRepository accountRepo, ExpenseRepository expenseRepo, PaymentRepository paymentRepo, UserRepository userRepo, AccountMapper mapper) {
+    public AccountBusinessImpl(AccountRepository accountRepo, ExpenseRepository expenseRepo, PaymentRepository paymentRepo, UserRepository userRepo) {
         this.accountRepo = accountRepo;
         this.expenseRepo = expenseRepo;
         this.paymentRepo = paymentRepo;
         this.userRepo = userRepo;
-        this.mapper = mapper;
     }
 
     @Override
-    public List<AccountEntryDTO> calculateBalances(String accountId) {
+    public List<Balance> calculateBalances(String accountId) {
         // Charger toutes les dépenses du groupe
         Account account = accountRepo.findById(accountId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
+        //Récupérer toutes les dépenses
         List<Expense> expenses = expenseRepo.findByAccount(account);
 
         // Calculer ce que chaque utilisateur a payé
@@ -51,9 +48,9 @@ public class AccountBusinessImpl implements AccountBusiness {
             User payer = expense.getPayer();
             Double amount = expense.getAmount();
 
-            Double totalPaid = totalExpenseByUser.getOrDefault(payer, 0.0);
-            totalPaid += amount;
-            totalExpenseByUser.put(payer, totalPaid);
+            Double totalPaidByUser = totalExpenseByUser.getOrDefault(payer, 0.0);
+            totalPaidByUser += amount;
+            totalExpenseByUser.put(payer, totalPaidByUser);
         }
 
         // Calculer ce qu'il aurait dû payer
@@ -67,20 +64,20 @@ public class AccountBusinessImpl implements AccountBusiness {
         List<Payment> payments = paymentRepo.findByAccount(account);
 
         Map<User, Double> totalRepaymentByUser = new HashMap<>();
-        Map<User, Double> totalReceivedByUser = new HashMap<>();
+        Map<User, Double> totalGetByUser = new HashMap<>();
 
         for (Payment payment : payments) {
             User from = payment.getFrom();
             User to = payment.getTo();
             Double amount = payment.getAmount();
 
-            Double totalRepaid = totalRepaymentByUser.getOrDefault(from, 0.0);
-            totalRepaid += amount;
-            totalRepaymentByUser.put(from, totalRepaid);
+            Double totalRepaidByUser = totalRepaymentByUser.getOrDefault(from, 0.0);
+            totalRepaidByUser += amount;
+            totalRepaymentByUser.put(from, totalRepaidByUser);
 
-            Double totalReceived = totalReceivedByUser.getOrDefault(to, 0.0);
-            totalReceived += amount;
-            totalReceivedByUser.put(to, totalReceived);
+            Double totalReceivedByUser = totalGetByUser.getOrDefault(to, 0.0);
+            totalReceivedByUser += amount;
+            totalGetByUser.put(to, totalReceivedByUser);
         }
 
         // Ajustement des soldes de chacun
@@ -89,52 +86,50 @@ public class AccountBusinessImpl implements AccountBusiness {
         for (User user : account.getUsers()) {
             Double paid = totalExpenseByUser.getOrDefault(user, 0.0);
             Double repayment = totalRepaymentByUser.getOrDefault(user, 0.0);
-            Double received = totalReceivedByUser.getOrDefault(user, 0.0);
+            Double received = totalGetByUser.getOrDefault(user, 0.0);
             Double balance = paid - shareByParticipant + repayment - received;
             balanceByUser.put(user, balance);
         }
 
-        // Retourner un List<AccountEntryDTO>
-        List<AccountEntryDTO> entries = balanceByUser.entrySet().stream()
+        // Retourner une liste
+        List<Balance> entries = balanceByUser.entrySet().stream()
                 .map(entry -> {
-                    User user = entry.getKey();
-                    Double balance = entry.getValue();
-                    return new AccountEntryDTO(user.getId(), user.getUsername(), balance);
-                        })
+                    return new Balance(entry.getKey(), entry.getValue());
+                })
                 .collect(Collectors.toList());
 
         return entries;
     }
 
     @Override
-    public List<DebtDTO> calculateDebts(String accountId) {
+    public List<Debt> calculateDebts(String accountId) {
         // OBJECTIF : Balance à zéro (si solde +, on lui doit; si -, il doit)
-        // Utiliser calculateBalances pour récupérer les net balances
-        List<AccountEntryDTO> balances = calculateBalances(accountId);
+        // Récupère les soldes nets par utilisateur
+        List<Balance> balanceByUser = calculateBalances(accountId);
 
-        // Séparer les Créditors et les Debtors
-        List<AccountEntryDTO> debtors = balances.stream()
+        // Séparer les Créditors et les Debtors dans des listes de type "Map" mutables
+        List<Balance> debtors = balanceByUser.stream()
                 .filter(n -> n.getBalance() < 0)
-                .sorted(Comparator.comparing(AccountEntryDTO::getBalance))
+                .sorted(Comparator.comparing(Balance::getBalance))
                 .collect(Collectors.toList());
 
-        List<AccountEntryDTO> creditors = balances.stream()
+        List<Balance> creditors = balanceByUser.stream()
                 .filter(n -> n.getBalance() > 0)
-                .sorted(Comparator.comparing(AccountEntryDTO::getBalance).reversed())
+                .sorted(Comparator.comparing(Balance::getBalance).reversed())
                 .collect(Collectors.toList());
 
         // Appliquer l’algorithme de compensation
-        List<DebtDTO> debts = new ArrayList<>();
+        List<Debt> debts = new ArrayList<>();
 
-        // Bouclé la méthode de compensation jusqu'à ce que les listes soient vides
+        // Boucler la méthode de compensation jusqu'à ce que les listes soient vides
         while (!debtors.isEmpty() && !creditors.isEmpty()) {
             // Récupérer les "top" débiteur et créditeur
-            AccountEntryDTO debtor = debtors.get(0);
-            AccountEntryDTO creditor = creditors.get(0);
+            Balance debtor = debtors.get(0);
+            Balance creditor = creditors.get(0);
 
             // Le max transférable est égale au min des deux balances
             Double amount = Math.min(-debtor.getBalance(), creditor.getBalance());
-            debts.add(new DebtDTO(debtor.getId(), debtor.getUsername(), creditor.getId(), creditor.getUsername(), amount));
+            debts.add(new Debt(debtor.getUser(), creditor.getUser(), amount));
 
             // Appliquer ce transfert théorique aux balances des deux users
             debtor.setBalance(debtor.getBalance() + amount);
@@ -148,17 +143,12 @@ public class AccountBusinessImpl implements AccountBusiness {
             }
         }
 
-        // Retourner la List<DebtDTO>
+        // Retourner la liste
         return debts;
     }
 
     @Override
-    public List<AccountDTO> getAccountsByUser(String userId) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-
-        return accountRepo.findByUsersContaining(user).stream()
-                .map(mapper::convertToDto)
-                .toList();
+    public List<Account> getAccountsByUser(User user) {
+        return accountRepo.findByUsersContaining(user);
     }
 }

@@ -37,16 +37,13 @@ public class PaymentBusinessImpl implements PaymentBusiness {
     }
 
     @Override
-    public PaymentDTO savePayment(String accountId, PaymentDTO dto) {
-        // Création de l'instance de paiement
-        Payment payment = mapper.convertFromPost(dto);
-
+    public Payment savePayment(String accountId, Payment payment) {
         // Récupération du groupe et des users concernés à partir du DTO
         Account account = accountRepo.findById(accountId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
-        User from = userRepo.findById(dto.getFromUserId())
+        User from = userRepo.findById(payment.getFrom().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Payer not found"));
-        User to = userRepo.findById(dto.getToUserId())
+        User to = userRepo.findById(payment.getTo().getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Receiver not found"));
 
         // Ajout des propriétés liées aux relations
@@ -60,11 +57,11 @@ public class PaymentBusinessImpl implements PaymentBusiness {
         }
 
         paymentRepo.save(payment);
-        return mapper.convertToDTO(payment);
+        return payment;
     }
 
     @Override
-    public List<PaymentDTO> getPaymentsByAccount(String accountId) {
+    public List<Payment> getPaymentsByAccount(String accountId) {
         Account account = accountRepo.findById(accountId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
 
@@ -74,8 +71,6 @@ public class PaymentBusinessImpl implements PaymentBusiness {
             logger.info("No payments found for account {}", accountId);
         }
 
-        return payments.stream()
-                .map(mapper::convertToDTO)
-                .collect(Collectors.toList());
+        return payments;
     }
 }

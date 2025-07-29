@@ -14,8 +14,8 @@ public interface PaymentMapper {
     PaymentDTO convertToDTO(Payment payment);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(source = "fromUserId", target = "from.id")
+    @Mapping(source = "toUserId", target = "to.id")
     @Mapping(target = "account", ignore = true)
-    @Mapping(target = "from", ignore = true)
-    @Mapping(target = "to", ignore = true)
     Payment convertFromPost(PaymentDTO paymentDTO);
 }
