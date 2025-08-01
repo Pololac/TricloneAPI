@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -40,7 +41,7 @@ class ApiAccountTest {
     Account account;
     String accountId;
     String userId;
-    int userCount;
+    int usersCount;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -53,7 +54,7 @@ class ApiAccountTest {
                 .orElseThrow();
         userId = user.getId();
 
-        userCount = accountRepo.findById(accountId)
+        usersCount = accountRepo.findById(accountId)
                 .get()
                 .getUsers()
                 .size();
@@ -65,17 +66,15 @@ class ApiAccountTest {
     }
 
     @Test
+    @WithUserDetails(value="pierre", userDetailsServiceBeanName="userService")
     void getBalancesWithAccountIdShouldReturnAllBalances() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/api/accounts/{accountId}/balances", accountId))
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(userCount)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.hasSize(usersCount)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].id").isString())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].username").isString())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].balance").isNumber())
                 .andExpect(MockMvcResultMatchers.jsonPath("sum($[*].balance)", closeTo(0.0, 0.01))
                 );
     }
-
-
-
 }

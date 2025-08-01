@@ -15,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -64,6 +65,7 @@ public class ApiExpenseTest {
     }
 
     @Test
+    @WithUserDetails(value="pierre", userDetailsServiceBeanName="userService")
     void getExpensesWithAccountIdShouldReturnAllExpenses() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/api/accounts/{accountId}/expenses", accountId))
                 .andExpect(MockMvcResultMatchers.status().isOk())
@@ -72,12 +74,14 @@ public class ApiExpenseTest {
     }
 
     @Test
+    @WithUserDetails(value="pierre", userDetailsServiceBeanName="userService")
     void getExpensesWithFakeAccountIdShouldThrow404() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/api/accounts/fakeid/expenses"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
     @Test
+    @WithUserDetails(value="pierre", userDetailsServiceBeanName="userService")
     void getExpensesWithUserAndAmountsShouldReturnFilteredExpenses() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/api/accounts/{accountId}/expenses", accountId)
                 .param("payerId",    userId)
@@ -89,6 +93,7 @@ public class ApiExpenseTest {
     }
 
     @Test
+    @WithUserDetails(value="pierre", userDetailsServiceBeanName="userService")
     void postShouldPersistExpense() throws Exception {
         mvc.perform(MockMvcRequestBuilders.post("/api/accounts/{accountId}/expenses", accountId)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -107,6 +112,7 @@ public class ApiExpenseTest {
     }
 
     @Test
+    @WithUserDetails(value="pierre", userDetailsServiceBeanName="userService")
     void postShouldFailOnValidationError() throws Exception {
         mvc.perform(MockMvcRequestBuilders.post("/api/accounts/{accountId}/expenses", accountId)
                 .contentType(MediaType.APPLICATION_JSON)
