@@ -15,8 +15,9 @@ effective-pom.xml
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
+### IntelliJ IDEA & VS Code ###
 .idea
+.vscode
 *.iws
 *.iml
 *.ipr
