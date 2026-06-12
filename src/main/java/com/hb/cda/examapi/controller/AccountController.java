@@ -5,10 +5,8 @@ import com.hb.cda.examapi.business.PaymentBusiness;
 import com.hb.cda.examapi.controller.dto.AccountEntryDTO;
 import com.hb.cda.examapi.controller.dto.DebtDTO;
 import com.hb.cda.examapi.controller.dto.PaymentDTO;
-import com.hb.cda.examapi.controller.dto.mapper.AccountMapper;
 import com.hb.cda.examapi.controller.dto.mapper.PaymentMapper;
 import com.hb.cda.examapi.entity.Payment;
-import com.hb.cda.examapi.entity.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

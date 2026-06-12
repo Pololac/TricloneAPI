@@ -1,6 +1,5 @@
 package com.hb.cda.examapi;
 
-import com.hb.cda.examapi.data.DataLoader;
 import jakarta.transaction.Transactional;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -20,9 +19,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 class ApiAccountListTest {
     @Autowired
     MockMvc mvc;
-
-    @Autowired
-    private DataLoader dataLoader;
 
     @Test
     @WithUserDetails(value="paul", userDetailsServiceBeanName="userService")

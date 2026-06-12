@@ -3,8 +3,6 @@ package com.hb.cda.examapi.data;
 import com.hb.cda.examapi.entity.Expense;
 import com.hb.cda.examapi.entity.User;
 import com.hb.cda.examapi.entity.Account;
-
-import com.hb.cda.examapi.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +22,6 @@ public class DataLoader implements CommandLineRunner {
     }
 
     @Autowired
-    private UserRepository userRepo;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
@@ -42,7 +37,6 @@ public class DataLoader implements CommandLineRunner {
 
         // Étape 2 : rechercher ou créer le groupe
         Account account1 = findOrCreateAccount("Ski Fev 2025", user1, user2, user3);
-        Account account2 = findOrCreateAccount("WE Forez Juin 2025");
 
         // Étape 3 : créer des dépenses **uniquement si absentes**
         createExpenseIfNotExists("Forfait remontées mécaniques – Journée", 50.00,

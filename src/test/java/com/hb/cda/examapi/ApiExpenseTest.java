@@ -1,10 +1,8 @@
 package com.hb.cda.examapi;
 
-import com.hb.cda.examapi.data.DataLoader;
 import com.hb.cda.examapi.entity.Account;
 import com.hb.cda.examapi.entity.User;
 import com.hb.cda.examapi.repository.AccountRepository;
-import com.hb.cda.examapi.repository.ExpenseRepository;
 import com.hb.cda.examapi.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.hamcrest.Matchers;
@@ -35,15 +33,8 @@ public class ApiExpenseTest {
     private AccountRepository accountRepo;
 
     @Autowired
-    private ExpenseRepository expenseRepo;
-
-    @Autowired
     private UserRepository userRepo;
 
-    @Autowired
-    private DataLoader dataLoader;
-
-    private Account account;
     String accountId;
     String userId;
 

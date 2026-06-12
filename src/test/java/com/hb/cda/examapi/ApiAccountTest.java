@@ -1,6 +1,5 @@
 package com.hb.cda.examapi;
 
-import com.hb.cda.examapi.data.DataLoader;
 import com.hb.cda.examapi.entity.Account;
 import com.hb.cda.examapi.entity.User;
 import com.hb.cda.examapi.repository.AccountRepository;
@@ -34,9 +33,6 @@ class ApiAccountTest {
 
     @Autowired
     private UserRepository userRepo;
-
-    @Autowired
-    private DataLoader dataLoader;
 
     Account account;
     String accountId;
