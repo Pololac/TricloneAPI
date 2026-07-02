@@ -51,7 +51,7 @@ jobs:
       - name: Run tests
         run: ./mvnw -B test
         env:
-          SPRING_DATASOURCE_URL: "jdbc:mysql://127.0.0.1:3306/examapi_test?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC"
+          SPRING_DATASOURCE_URL: "jdbc:mysql://127.0.0.1:3306/examapi_test?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
 
       - name: Build jar
         run: ./mvnw -B package -DskipTests
